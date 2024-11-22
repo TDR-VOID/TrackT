@@ -1,18 +1,47 @@
 #include <Arduino.h>
 
-// put function declarations here:
-int myFunction(int, int);
+#include <SoftwareSerial.h>
+
+#define DEBUG true
+
+
+SoftwareSerial A9GSerial(3, 4); // RX, TX - Define the RX and TX pins for SoftwareSerial 87
+
+void initialization(){
+   sendData("AT+GPS=1", 1000, DEBUG); // Turn on GPS
+    sendData("AT+CGATT=1", 1000, DEBUG);
+    sendData("AT+CGATT=1", 1000, DEBUG);
+
+    sendData("AT+CGDCONT=1,\"IP\",\"APN\"",1000, DEBUG); // Add APN
+    sendData("AT+CGACT=1,1",1000, DEBUG);
+    sendData("AT+GPS=1", 1000, DEBUG); // Get GPS address
+    timeCount = millis();
+    Serial.println("Arduino Uno - A9G GPS Coordinates:");
+}
+String sendData(String command, const int timeout, boolean debug) {
+  String response = "";
+  A9GSerial.println(command);
+  long int time = millis();
+  while ( (time + timeout) > millis()) {
+    while (A9GSerial.available()) {
+      response = A9GSerial.readString();
+    }
+  }
+  if (debug) {
+    Serial.print(response);
+  }
+  return response;
+}
 
 void setup() {
-  // put your setup code here, to run once:
-  int result = myFunction(2, 3);
-}
+  Serial.begin(115200);
+  A9GSerial.begin(115200);
 
-void loop() {
-  // put your main code here, to run repeatedly:
-}
+  sendData("AT+GPS=1",1000,DEBUG);
+  sendData("AT+CGATT=1",1000,DEBUG);
+  sendData("AT+CGDCONT=1,\"IP\",\"vodafone\"",1000,DEBUG);
+  sendData("AT+CGDCONT=2,\"IP\",\"vodafone\"",1000,DEBUG);
+  sendData("AT+CGACT=1,1",1000,DEBUG);
+  sendData("AT+CGACT=1,2",1000,DEBUG);
 
-// put function definitions here:
-int myFunction(int x, int y) {
-  return x + y;
 }
